@@ -35,7 +35,7 @@ edited, deleted, and dragged between sections. Sections can be opened all at onc
 | Item | Value |
 | --- | --- |
 | User | One person, on their own machine |
-| Browsers | Current Chrome, Safari (iOS), Firefox |
+| Browsers | Chrome and Safari verified via Playwright; Firefox blocked here (see 12.4) |
 | Node | >= 22.6 (native TypeScript execution) |
 | Database | Postgres 17 in Docker, published on `127.0.0.1:5436` |
 | Fallback storage | In-memory when `DATABASE_URL` is unset |
@@ -180,7 +180,7 @@ then removes the section **and its bookmarks**. Section position increments.
 ### FR-7 — Drag between sections
 
 - [x] Implemented
-- [x] Verified (mouse in Chromium/WebKit; touch in Chromium)
+- [x] Verified (mouse in Chromium/WebKit; touch in Chromium and WebKit)
 
 **Acceptance:** dragging a tile onto another section moves it and persists through a
 reload; dropping onto an empty section appends; a mouse drag works on desktop; a
@@ -222,7 +222,8 @@ choice is stored; `color-scheme` is set so native controls match.
 | ≥ 1600px | 6 |
 
 **Acceptance:** the column count matches the table at each breakpoint; no horizontal
-scrolling at 360px; tiles remain square at every width.
+scrolling at 360px; tiles remain square at every width; at 200% text scaling there is
+no horizontal overflow and every control stays at least 40x40.
 
 ### FR-11 — Persistence
 
@@ -335,7 +336,9 @@ Rules for implementers:
 | Unit | Vitest | URL, validation, ordering, layout, drop resolution |
 | Repo | Vitest | Memory repo behavior, positions, cascade delete |
 | HTTP | Vitest | Every route, error shapes, JSON 404 |
+| Accessibility | axe-core | Main page, both modals, error state, light and dark |
 | E2E | Playwright | Chromium (Pixel 7), WebKit (iPhone 13), desktop 1440×900 |
+| Responsive | Playwright | 280–1920px, landscape, every breakpoint boundary, 200% text |
 
 **Verification matrix**
 
@@ -343,14 +346,14 @@ Rules for implementers:
 | --- | --- |
 | FR-1, FR-2, FR-3, FR-4, FR-5 | `e2e/app.spec.ts` |
 | FR-6 | `e2e/app.spec.ts` create, rename, delete |
-| FR-7 | `e2e/app.spec.ts` drag tests (mouse + touch) |
+| FR-7 | `e2e/app.spec.ts` drag tests (mouse + touch), `e2e/touch-webkit.spec.ts` |
 | FR-8 | `e2e/app.spec.ts` notice + request-count tests |
 | FR-9 | `e2e/app.spec.ts` dark mode |
-| FR-10 | `e2e/app.spec.ts` 2-column, 3-column tablet, desktop column tests |
+| FR-10 | `e2e/app.spec.ts` + `e2e/responsive.spec.ts` (boundaries, landscape, 200% text) |
 | FR-11 | `docker compose` restart test + `bin/db psql` |
 | FR-12 | `tests/*.test.ts` |
 | FR-13 | Code review against the rule |
-| FR-14 | `e2e/app.spec.ts` tap targets + modal focus |
+| FR-14 | `e2e/app.spec.ts` tap targets + modal focus, `e2e/a11y.spec.ts` |
 | FR-15 | `tests/api.test.ts` + `e2e/app.spec.ts` banner test |
 | FR-16 | `docker compose up` with `.env` |
 
@@ -376,13 +379,22 @@ observed. Reading the code is not verification.
 
 These are real, unfixed, and must not be presented as complete:
 
-1. Touch drag is verified in Chromium only; WebKit touch gestures are untested.
+1. Native mobile gestures are unverified. WebKit touch drag is covered by synthetic
+   `TouchEvent`s (`document.createTouch` / `createTouchList`), which exercises the
+   dnd-kit path but not native iOS scroll arbitration, `touchcancel`, or callouts.
+   A real device is still required for those.
 2. Multi-tab "open all" depends on browser popup policy. The app is verified to
    request every URL, but the browser may still open only one.
-3. No real-device testing (iOS Safari, Android Chrome), and no checks for landscape,
-   text scaling, or screen-reader semantics.
-4. Firefox is not in the Playwright matrix; the supported list in section 3 is
-   aspirational until it is added.
+3. At 200% text scaling, tile contents clip: long titles and descriptions truncate
+   and the edit/delete controls overlay the icon. There is no overflow and controls
+   stay 40px, so no assertion fails — but this needs a design decision (scale the
+   content, relax the square aspect, or hide text at large sizes).
+4. Firefox cannot run in this environment. Playwright's Firefox 157 build exits at
+   startup with "Could not find profile folder" on macOS 27.0.1, even with an
+   explicit profile directory, so no Firefox project is configured. Revisit when a
+   compatible Playwright/Firefox build exists.
+5. No real-device testing (iOS Safari, Android Chrome) and no screen-reader audit
+   beyond the automated axe checks.
 
 ## 13. Commands
 
