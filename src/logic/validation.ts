@@ -35,13 +35,18 @@ export function validateBookmark(draft: BookmarkDraft): ValidationResult {
     errors.description = `Description must be ${MAX_DESCRIPTION} characters or fewer`;
   }
 
-  if (Object.keys(errors).length > 0) return { ok: false, errors };
+  const iconInput = draft.iconUrl?.trim() ?? '';
+  let iconUrl: string | null = null;
+  if (iconInput !== '') {
+    iconUrl = normalizeUrl(iconInput);
+    if (iconUrl === null) errors.iconUrl = 'Enter a valid image URL';
+  }
 
-  const iconUrl = draft.iconUrl?.trim();
+  if (Object.keys(errors).length > 0) return { ok: false, errors };
 
   return {
     ok: true,
-    value: { title, url: url as string, description, iconUrl: iconUrl ? iconUrl : null },
+    value: { title, url: url as string, description, iconUrl },
   };
 }
 

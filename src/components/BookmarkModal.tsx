@@ -75,6 +75,7 @@ export function BookmarkModal({ sectionId, bookmark, onCancel, onSubmit }: Bookm
         <label>
           Icon URL <span className="optional">(optional, defaults to site favicon)</span>
           <input value={iconUrl} onChange={(event) => setIconUrl(event.target.value)} placeholder="https://…" />
+          {errors.iconUrl && <span className="error">{errors.iconUrl}</span>}
         </label>
 
         <div className="modal__actions">

@@ -273,3 +273,75 @@ test('drags a bookmark between sections with a real touch gesture', async ({ pag
 
   await expect(section(page, targetName).locator('.tile__title', { hasText: title })).toBeVisible();
 });
+
+test('renames a section', async ({ page }) => {
+  const original = unique('Rename');
+  const renamed = unique('Renamed');
+
+  await page.goto('/');
+  await addSection(page, original);
+  await section(page, original).getByRole('button', { name: 'Rename' }).click();
+  await page.getByPlaceholder('Reading').fill(renamed);
+  await page.getByRole('button', { name: 'Save' }).click();
+
+  await expect(section(page, renamed)).toBeVisible();
+  await expect(section(page, original)).toHaveCount(0);
+});
+
+test('uses three columns at tablet width', async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto('/');
+
+  await addBookmark(page, unique('Tablet'), 'example.com');
+  await addBookmark(page, unique('Tablet'), 'example.org');
+  await addBookmark(page, unique('Tablet'), 'example.net');
+
+  expect(await maxTilesPerRow(page)).toBe(3);
+});
+
+test('shows a dismissible banner when loading fails', async ({ page }) => {
+  await page.route('**/api/state', (route) =>
+    route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Boom' }),
+    }),
+  );
+
+  await page.goto('/');
+  const banner = page.getByRole('alert');
+  await expect(banner).toContainText('Boom');
+
+  await page.getByRole('button', { name: 'Dismiss' }).click();
+  await expect(banner).toHaveCount(0);
+});
+
+test('requests one tab per bookmark when opening all', async ({ page }) => {
+  const name = unique('OpenAll');
+  await page.goto('/');
+  await addSection(page, name);
+
+  const target = section(page, name);
+  for (const host of ['example.com', 'example.org', 'example.net']) {
+    await target.locator('.tile--add').click();
+    await page.getByPlaceholder('My favorite site').fill(host);
+    await page.getByPlaceholder('example.com').fill(host);
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(target.locator('.tile__title', { hasText: host })).toBeVisible();
+  }
+
+  await page.evaluate(() => {
+    const opened: string[] = [];
+    (window as unknown as { __opened: string[] }).__opened = opened;
+    window.open = (url?: string | URL) => {
+      opened.push(String(url));
+      return null;
+    };
+  });
+
+  await target.getByRole('button', { name: 'Open all' }).click();
+
+  const opened = await page.evaluate(() => (window as unknown as { __opened: string[] }).__opened);
+  expect(opened).toHaveLength(3);
+  expect(opened[0]).toContain('example.com');
+});

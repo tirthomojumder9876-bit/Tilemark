@@ -54,6 +54,30 @@ describe('validateBookmark', () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value.iconUrl).toBe('https://cdn/x.png');
   });
+
+  it('normalizes a bare icon host', () => {
+    const result = validateBookmark({ title: 'X', url: 'example.com', iconUrl: 'cdn.example.com/x.png' });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.iconUrl).toBe('https://cdn.example.com/x.png');
+  });
+
+  it('rejects an invalid icon url', () => {
+    const result = validateBookmark({ title: 'X', url: 'example.com', iconUrl: '!!!' });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors.iconUrl).toBeDefined();
+  });
+
+  it('rejects a non-http icon url', () => {
+    const result = validateBookmark({ title: 'X', url: 'example.com', iconUrl: 'ftp://cdn/x.png' });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors.iconUrl).toBeDefined();
+  });
+
+  it('treats a blank icon url as absent', () => {
+    const result = validateBookmark({ title: 'X', url: 'example.com', iconUrl: '   ' });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.iconUrl).toBeNull();
+  });
 });
 
 describe('validateSectionTitle', () => {
