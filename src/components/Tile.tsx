@@ -26,6 +26,9 @@ export function Tile({ bookmark, onEdit, onDelete }: TileProps) {
       style={{ transform: CSS.Transform.toString(transform), transition }}
       {...attributes}
       {...listeners}
+      // dnd-kit defaults to role="button"; the tile wraps a real link and
+      // buttons, so expose it as a group instead of nesting controls.
+      role="group"
     >
       <a
         className="tile__link"

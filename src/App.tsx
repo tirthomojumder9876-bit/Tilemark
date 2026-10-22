@@ -175,30 +175,6 @@ export default function App() {
         </div>
       </header>
 
-      {error && (
-        <div className="banner" role="alert">
-          {error}
-          <button type="button" className="icon-button" onClick={() => setError(null)} aria-label="Dismiss">
-            ✕
-          </button>
-        </div>
-      )}
-
-      {notice && (
-        <div className="banner banner--info" role="status">
-          {notice}
-          <button type="button" className="icon-button" onClick={() => setNotice(null)} aria-label="Dismiss">
-            ✕
-          </button>
-        </div>
-      )}
-
-      {state === null && <p className="muted">Loading…</p>}
-
-      {state !== null && state.sections.length === 0 && (
-        <p className="muted">No sections yet. Create one to start adding bookmarks.</p>
-      )}
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -207,6 +183,30 @@ export default function App() {
         onDragCancel={() => setActiveId(null)}
       >
         <main>
+        {error && (
+          <div className="banner" role="alert">
+            {error}
+            <button type="button" className="icon-button" onClick={() => setError(null)} aria-label="Dismiss">
+              ✕
+            </button>
+          </div>
+        )}
+
+        {notice && (
+          <div className="banner banner--info" role="status">
+            {notice}
+            <button type="button" className="icon-button" onClick={() => setNotice(null)} aria-label="Dismiss">
+              ✕
+            </button>
+          </div>
+        )}
+
+        {state === null && <p className="muted">Loading…</p>}
+
+        {state !== null && state.sections.length === 0 && (
+          <p className="muted">No sections yet. Create one to start adding bookmarks.</p>
+        )}
+
           {state?.sections.map((section) => (
             <SectionView
               key={section.id}
