@@ -14,6 +14,7 @@ import { api } from './api';
 import { BookmarkModal } from './components/BookmarkModal';
 import { SectionModal } from './components/SectionModal';
 import { SectionView } from './components/Section';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { columnsForWidth, groupBySection, resolveDrop, sectionUrls } from './logic/grid';
 import type { AppState, Bookmark, BookmarkInput, Section } from './types';
 
@@ -29,6 +30,7 @@ function initialTheme(): 'light' | 'dark' {
 export default function App() {
   const [state, setState] = useState<AppState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [columns, setColumns] = useState(() => columnsForWidth(window.innerWidth));
   const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme);
   const [bookmarkModal, setBookmarkModal] = useState<BookmarkModalState>(null);
@@ -37,7 +39,7 @@ export default function App() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const refresh = useCallback(async () => {
@@ -114,7 +116,19 @@ export default function App() {
 
   function handleOpenAll(sectionId: string) {
     const urls = sectionUrls(state?.bookmarks ?? [], sectionId);
+
+    if (urls.length === 0) {
+      setNotice('This section has no bookmarks to open.');
+      return;
+    }
+
     for (const url of urls) window.open(url, '_blank', 'noopener,noreferrer');
+
+    setNotice(
+      urls.length > 1
+        ? `Asked the browser to open ${urls.length} sites. If only one opened, allow popups for this page.`
+        : 'Opening 1 site.',
+    );
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -162,6 +176,15 @@ export default function App() {
         <div className="banner" role="alert">
           {error}
           <button type="button" className="icon-button" onClick={() => setError(null)} aria-label="Dismiss">
+            ✕
+          </button>
+        </div>
+      )}
+
+      {notice && (
+        <div className="banner banner--info" role="status">
+          {notice}
+          <button type="button" className="icon-button" onClick={() => setNotice(null)} aria-label="Dismiss">
             ✕
           </button>
         </div>

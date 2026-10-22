@@ -12,10 +12,11 @@ interface TileProps {
 
 /** Presentational tile. All behavior arrives through props. */
 export function Tile({ bookmark, onEdit, onDelete }: TileProps) {
-  const [iconFailed, setIconFailed] = useState(false);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: bookmark.id });
 
   const icon = bookmark.iconUrl ?? faviconUrl(bookmark.url);
+  const showIcon = icon !== '' && icon !== failedSrc;
 
   return (
     <div
@@ -26,12 +27,19 @@ export function Tile({ bookmark, onEdit, onDelete }: TileProps) {
       {...attributes}
       {...listeners}
     >
-      <a className="tile__link" href={bookmark.url} target="_blank" rel="noreferrer">
+      <a
+        className="tile__link"
+        href={bookmark.url}
+        target="_blank"
+        rel="noreferrer"
+        // Let Enter open the link instead of starting a keyboard drag.
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.stopPropagation();
+        }}
+      >
         <span className="tile__icon" aria-hidden="true">
           <span className="tile__initial">{initialFor(bookmark.title, bookmark.url)}</span>
-          {icon && !iconFailed && (
-            <img src={icon} alt="" loading="lazy" onError={() => setIconFailed(true)} />
-          )}
+          {showIcon && <img src={icon} alt="" loading="lazy" onError={() => setFailedSrc(icon)} />}
         </span>
         <span className="tile__title">{bookmark.title}</span>
         {bookmark.description !== '' && <span className="tile__desc">{bookmark.description}</span>}

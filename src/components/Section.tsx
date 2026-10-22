@@ -37,7 +37,7 @@ export function SectionView({
           <span className="section__count">{bookmarks.length}</span>
         </h2>
         <div className="section__actions">
-          <button type="button" onClick={() => onOpenAll(section.id)} disabled={bookmarks.length === 0}>
+          <button type="button" onClick={() => onOpenAll(section.id)}>
             Open all
           </button>
           <button type="button" onClick={() => onRename(section)}>
@@ -67,6 +67,10 @@ export function SectionView({
         </SortableContext>
         <AddTile onClick={() => onAddBookmark(section.id)} />
       </div>
+
+      {bookmarks.length === 0 && (
+        <p className="section__hint muted">Nothing here yet — use the + tile to add a bookmark.</p>
+      )}
     </section>
   );
 }

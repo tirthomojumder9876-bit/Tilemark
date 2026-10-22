@@ -163,6 +163,11 @@ app.post('/api/bookmarks/:id/move', async (request, response, next) => {
   }
 });
 
+// Unknown API routes must stay JSON, not fall through to the SPA.
+app.use('/api', (_request, response) => {
+  response.status(404).json({ error: 'Not found' });
+});
+
 // Serve the built SPA when it exists, so `npm run build && npm start` works.
 const dist = join(import.meta.dirname, '..', 'dist');
 if (existsSync(dist)) {
