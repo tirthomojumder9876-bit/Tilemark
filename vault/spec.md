@@ -35,7 +35,7 @@ edited, deleted, and dragged between sections. Sections can be opened all at onc
 | Item | Value |
 | --- | --- |
 | User | One person, on their own machine |
-| Browsers | Chrome and Safari verified via Playwright; Firefox blocked here (see 12.3) |
+| Browsers | Chrome and Safari verified locally; Firefox verified in CI (see 12.3) |
 | Node | >= 22.6 (native TypeScript execution) |
 | Database | Postgres 17 in Docker, published on `127.0.0.1:5436` |
 | Fallback storage | In-memory when `DATABASE_URL` is unset |
@@ -385,10 +385,11 @@ These are real, unfixed, and must not be presented as complete:
    A real device is still required for those.
 2. Multi-tab "open all" depends on browser popup policy. The app is verified to
    request every URL, but the browser may still open only one.
-3. Firefox cannot run on this machine. Playwright's Firefox 157 build exits at
-   startup with "Could not find profile folder" on macOS 27.0.1, even with an
-   explicit profile directory. The project is behind `PW_INCLUDE_FIREFOX=1` and is
-   exercised by CI on Linux; it has not yet run there, so treat it as unproven.
+3. Firefox cannot run locally. Playwright's Firefox 157 build exits at startup with
+   "Could not find profile folder" on macOS 27.0.1, even with an explicit profile
+   directory. The project is therefore opt-in via `PW_INCLUDE_FIREFOX=1` and runs in
+   CI on Linux, where it passes (run 39844157166, 2026-10-23). Local Firefox coverage
+   remains unavailable until a compatible build exists.
 4. No real-device testing (iOS Safari, Android Chrome) and no screen-reader audit
    beyond the automated axe checks.
 
