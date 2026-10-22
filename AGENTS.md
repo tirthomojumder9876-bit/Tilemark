@@ -88,6 +88,14 @@ Recover with `git checkout -- .` while HEAD is still intact. Hooks are also
 bypassable (`git -c core.hooksPath=reset`, `--no-verify`), so treat them as a
 guardrail, not a sandbox.
 
+## Database
+
+- The database is reachable only through `bin/db`, which runs commands inside the
+  container via `docker compose exec`. Use `bin/db psql [args]`.
+- Never add a `ports:` mapping to `compose.yaml`, and never install or invoke a host
+  `psql` client — both remove the restriction.
+- If Docker is missing or not running, report it. Do not fall back to a host install.
+
 ## Gotchas
 
 TODO: Non-obvious constraints, required local services, slow or flaky tests,

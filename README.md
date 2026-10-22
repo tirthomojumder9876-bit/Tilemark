@@ -15,7 +15,26 @@ This switches on the guards in `.githooks/`. They refuse history-rewriting comma
 step and the repo *looks* protected but isn't — the hook files are committed, the
 setting that activates them is not.
 
-That is the whole setup. There are no dependencies or build steps yet.
+That is the whole setup. Nothing else to install or build yet — the database below
+needs Docker, and that is all.
+
+## Database
+
+Postgres runs in Docker with **no published port**. There is no host `psql` to
+install or use, because there is no host connection to make. Everything goes
+through the container:
+
+```bash
+cp .env.example .env   # then set a real POSTGRES_PASSWORD
+bin/db up              # start Postgres
+bin/db psql            # open psql inside the container
+```
+
+`bin/db psql` passes arguments through, so `bin/db psql -c '\dt'` works too. Other
+commands: `bin/db down`, `bin/db logs`, `bin/db exec <cmd>`.
+
+Never add a `ports:` mapping to `compose.yaml`, and never install a host `psql`
+client. Either one silently removes the restriction.
 
 ## Working here
 

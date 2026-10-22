@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+#
+# The only supported way to reach the local database.
+#
+# The database container publishes no port, so there is no host connection to
+# make and nothing for a host `psql` to talk to. This script runs psql inside
+# the container instead.
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+usage() {
+  cat >&2 <<'EOF'
+usage: bin/db <command>
+
+  up            start the database
+  down          stop it (data is kept in the dbdata volume)
+  logs          follow database logs
+  psql [args]   open psql inside the container
+  exec <cmd>    run a shell command inside the container
+EOF
+  exit 2
+}
+
+[ $# -ge 1 ] || usage
+command=$1
+shift
+
+case "$command" in
+  up)   exec docker compose up -d db ;;
+  down) exec docker compose down ;;
+  logs) exec docker compose logs -f db ;;
+  psql)
+    # $POSTGRES_USER and $POSTGRES_DB are set inside the container.
+    exec docker compose exec db sh -c 'exec psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"' sh "$@"
+    ;;
+  exec)
+    exec docker compose exec db "$@"
+    ;;
+  *) usage ;;
+esac

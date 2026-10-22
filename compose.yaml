@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env before starting}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+    # Deliberately no `ports:` mapping. The database is reachable only from
+    # other services on this compose network, or via `bin/db psql` which runs
+    # psql inside the container. Adding `ports:` would expose it to the host
+    # and defeat the restriction.
+
+volumes:
+  dbdata:
