@@ -1,0 +1,3 @@
+# Local, secret, and generated files
+.env
+.vscode/

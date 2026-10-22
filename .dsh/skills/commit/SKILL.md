@@ -18,20 +18,23 @@ Turn the working tree into a single clean commit, leaving nothing behind.
    resolving its path from this skill's base directory:
 
    ```bash
-   bash <skill-base-dir>/check-safety.sh
+   bash <skill-base-dir>/check-safety.sh --apply-ignore
    ```
 
-   It scans exactly the paths that would be committed and prints `BLOCK`/`JUNK`
-   lines. Follow its verdict, do not re-judge it:
+   It scans exactly the paths that would be committed. With `--apply-ignore` it
+   adds name-based secrets (`.env`, `*.pem`, `*.key`, …) and local/generated files
+   (`.vscode/`, `.idea/`, `node_modules/`, `.DS_Store`, …) to `.gitignore`,
+   untracks them, and re-scans. Follow its verdict, do not re-judge it:
 
-   - **Exit 0** → safe. Continue to step 3.
-   - **Exit 1** → stop. Report every printed line to the user and commit nothing.
-     Remove or unstage `BLOCK` paths; move `JUNK` paths to `.gitignore`
-     (`git rm --cached` anything already tracked).
+   - **Exit 0** → safe. Continue to step 3, and tell the user what was ignored.
+   - **Exit 1** → stop and commit nothing. The remaining lines are `secret-content`
+     (a token or private key *inside* a file — remove the secret, never ignore it)
+     or `large` (over 5 MiB). Report every line and ask before proceeding.
    - **Exit 2** → environment problem (not a repo, git missing). Report and stop.
 
-   Raise the 5 MiB threshold with `MAX_BYTES=<bytes>` only when the user
-   explicitly approves committing that specific large file.
+   Ignoring is not scrubbing: if a blocked path was ever committed, say so and
+   offer to purge it from history. Raise the 5 MiB threshold with
+   `MAX_BYTES=<bytes>` only when the user explicitly approves that file.
 
    The scan is a guardrail, not a guarantee. Default to committing **all**
    working files, not just the ones you edited.
