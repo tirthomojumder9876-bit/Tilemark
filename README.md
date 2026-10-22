@@ -75,6 +75,17 @@ Other commands: `bin/db up`, `bin/db down`, `bin/db logs`, `bin/db exec <cmd>`.
 The port is set by `DB_PORT` in `.env` (default 5436). Keep the binding on
 `127.0.0.1`; changing it to `0.0.0.0` exposes the database to your network.
 
+## Behaviour notes
+
+- **Drag on touch:** long-press a tile for about 200ms, then drag. A quick swipe
+  scrolls the page instead of picking the tile up.
+- **Open all:** browsers often allow only one programmatic tab. When that happens the
+  app says so and offers the same links as a normal list, so nothing fails silently.
+- **Keyboard:** Tab to a tile, press Space to pick it up, arrow keys to move,
+  Space to drop. Reorders are announced through a live region.
+- **Firefox:** the Playwright Firefox build cannot start on macOS 27, so the project
+  is skipped locally (`testIgnore`) and runs in CI on Linux.
+
 ## Working here
 
 - Keep local secrets in `.env`. It is gitignored and never committed.

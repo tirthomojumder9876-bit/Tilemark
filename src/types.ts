@@ -29,3 +29,8 @@ export interface BookmarkInput {
 export interface SectionInput {
   title: string;
 }
+
+export interface Link {
+  title: string;
+  url: string;
+}

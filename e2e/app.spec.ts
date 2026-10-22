@@ -335,7 +335,8 @@ test('requests one tab per bookmark when opening all', async ({ page }) => {
     (window as unknown as { __opened: string[] }).__opened = opened;
     window.open = (url?: string | URL) => {
       opened.push(String(url));
-      return null;
+      // Returning a window object marks the tab as opened, not blocked.
+      return { closed: false } as unknown as Window;
     };
   });
 

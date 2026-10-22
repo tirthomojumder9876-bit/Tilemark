@@ -231,11 +231,13 @@ button.danger {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
-  touch-action: manipulation;
+  /* Vertical page scroll wins until a deliberate long-press starts a drag. */
+  touch-action: pan-y;
 }
 
 .tile[data-dragging] {
   opacity: 0.35;
+  touch-action: none;
 }
 
 .tile__link {
@@ -449,4 +451,46 @@ button.danger {
     width: 48px;
     height: 48px;
   }
+}
+
+.modal__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.link-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 45vh;
+  overflow: auto;
+}
+
+.link-list a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.link-list a:hover {
+  background: var(--surface-alt);
+}
+
+.link-list__title {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.link-list__host {
+  font-size: 0.75rem;
+  color: var(--muted);
 }

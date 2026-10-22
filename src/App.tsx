@@ -15,9 +15,11 @@ import { api } from './api';
 import { BookmarkModal } from './components/BookmarkModal';
 import { SectionModal } from './components/SectionModal';
 import { SectionView } from './components/Section';
+import { OpenAllModal } from './components/OpenAllModal';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { columnsForWidth, groupBySection, resolveDrop, sectionUrls } from './logic/grid';
-import type { AppState, Bookmark, BookmarkInput, Section } from './types';
+import { columnsForWidth, groupBySection, resolveDrop } from './logic/grid';
+import { sortByPosition } from './logic/order';
+import type { AppState, Bookmark, BookmarkInput, Link, Section } from './types';
 
 type BookmarkModalState = { sectionId: string; bookmark: Bookmark | null } | null;
 type SectionModalState = { section: Section | null } | null;
@@ -37,11 +39,13 @@ export default function App() {
   const [bookmarkModal, setBookmarkModal] = useState<BookmarkModalState>(null);
   const [sectionModal, setSectionModal] = useState<SectionModalState>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [blockedLinks, setBlockedLinks] = useState<Link[] | null>(null);
 
   const sensors = useSensors(
-    // Mouse drags immediately; touch needs a short hold so page scrolling still works.
+    // Mouse drags immediately. Touch needs a deliberate hold with little movement,
+    // otherwise a casual swipe would be swallowed instead of scrolling the page.
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
@@ -118,20 +122,50 @@ export default function App() {
   }
 
   function handleOpenAll(sectionId: string) {
-    const urls = sectionUrls(state?.bookmarks ?? [], sectionId);
+    const bookmarks = sortByPosition(
+      (state?.bookmarks ?? []).filter((bookmark) => bookmark.sectionId === sectionId),
+    );
 
-    if (urls.length === 0) {
+    if (bookmarks.length === 0) {
       setNotice('This section has no bookmarks to open.');
       return;
     }
 
-    for (const url of urls) window.open(url, '_blank', 'noopener,noreferrer');
+    // Open synchronously inside the click handler so the first tab is attributed
+    // to a user gesture. A null return means the popup blocker suppressed it.
+    let blocked = 0;
+    for (const bookmark of bookmarks) {
+      const opened = window.open(bookmark.url, '_blank', 'noopener,noreferrer');
+      if (!opened) blocked += 1;
+    }
 
-    setNotice(
-      urls.length > 1
-        ? `Asked the browser to open ${urls.length} sites. If only one opened, allow popups for this page.`
-        : 'Opening 1 site.',
-    );
+    if (blocked > 0) {
+      setBlockedLinks(bookmarks.map((bookmark) => ({ title: bookmark.title, url: bookmark.url })));
+      setNotice(
+        `Your browser blocked ${blocked} of ${bookmarks.length} tabs. Allow popups for this page, or open them from the list.`,
+      );
+      return;
+    }
+
+    setNotice(bookmarks.length > 1 ? `Opened ${bookmarks.length} sites.` : 'Opened 1 site.');
+  }
+
+  function describeDrop(activeId: string, overId: string | null): string {
+    const title = state?.bookmarks.find((bookmark) => bookmark.id === activeId)?.title ?? 'bookmark';
+    if (!state || !overId) return `Dropped ${title}.`;
+
+    const destination = resolveDrop(overId, state.bookmarks);
+    if (!destination) return `Dropped ${title}.`;
+
+    // The moved bookmark is not in the destination yet, so add it back in.
+    const destinationCount = state.bookmarks.filter(
+      (bookmark) => bookmark.sectionId === destination.sectionId && bookmark.id !== activeId,
+    ).length;
+    const total = destinationCount + 1;
+    const sectionTitle = state.sections.find((section) => section.id === destination.sectionId)?.title ?? 'section';
+    const position = Math.min(destination.index + 1, total);
+
+    return `Moved ${title} to position ${position} of ${total} in ${sectionTitle}.`;
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -177,6 +211,23 @@ export default function App() {
 
       <DndContext
         sensors={sensors}
+        accessibility={{
+          screenReaderInstructions: {
+            draggable:
+              'Press space to pick up a bookmark. Use the arrow keys to move it, then space to drop it.',
+          },
+          announcements: {
+            onDragStart: ({ active }) =>
+              `Picked up ${state?.bookmarks.find((bookmark) => bookmark.id === active.id)?.title ?? 'bookmark'}.`,
+            onDragOver: ({ active, over }) =>
+              over
+                ? `Moving ${state?.bookmarks.find((bookmark) => bookmark.id === active.id)?.title ?? 'bookmark'} over another target.`
+                : 'Not over a drop target.',
+            onDragEnd: ({ active, over }) => describeDrop(String(active.id), over ? String(over.id) : null),
+            onDragCancel: ({ active }) =>
+              `Cancelled moving ${state?.bookmarks.find((bookmark) => bookmark.id === active.id)?.title ?? 'bookmark'}.`,
+          },
+        }}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -234,6 +285,8 @@ export default function App() {
           onSubmit={handleSaveBookmark}
         />
       )}
+
+      {blockedLinks && <OpenAllModal links={blockedLinks} onClose={() => setBlockedLinks(null)} />}
 
       {sectionModal && (
         <SectionModal

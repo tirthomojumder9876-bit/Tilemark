@@ -184,7 +184,8 @@ then removes the section **and its bookmarks**. Section position increments.
 
 **Acceptance:** dragging a tile onto another section moves it and persists through a
 reload; dropping onto an empty section appends; a mouse drag works on desktop; a
-touch hold-then-drag works on mobile without breaking page scroll.
+touch drag requires a 200ms hold with at most 5px of movement, so a casual swipe
+scrolls instead of dragging; the live region announces the destination position.
 
 ### FR-8 — Open all
 
@@ -192,8 +193,9 @@ touch hold-then-drag works on mobile without breaking page scroll.
 - [x] Verified (request count and notice; actual tab opening is browser policy)
 
 **Acceptance:** every section has an "Open all" button, including empty ones; it is
-always enabled; clicking it opens each URL in a new tab; when the section is empty
-or tabs may be blocked, an explanatory notice is shown.
+always enabled; the first tab opens synchronously inside the click handler; each
+`window.open` returning null counts as blocked; when tabs are blocked the app shows
+a notice and a dialog listing the same URLs as plain `target="_blank"` anchors.
 
 > Verified that the app issues one `window.open` per bookmark and reports the count.
 > Whether the browser honors them is outside the app's control; it must never fail
@@ -258,7 +260,9 @@ validators; they must not own business rules.
 
 **Acceptance:** every interactive control is at least 40×40px; dialogs close on
 Escape and trap focus; every icon-only button has an `aria-label`; the modal is
-labelled by its heading; Enter on a tile opens the link instead of starting a drag.
+labelled by its heading; Enter on a tile opens the link instead of starting a drag;
+tiles expose `aria-roledescription="sortable"` and reorders are announced through
+an `aria-live` region (for example "Moved GitHub to position 1 of 3 in Reading").
 
 ### FR-15 — Error handling
 
@@ -347,13 +351,13 @@ Rules for implementers:
 | FR-1, FR-2, FR-3, FR-4, FR-5 | `e2e/app.spec.ts` |
 | FR-6 | `e2e/app.spec.ts` create, rename, delete |
 | FR-7 | `e2e/app.spec.ts` drag tests (mouse + touch), `e2e/touch-webkit.spec.ts` |
-| FR-8 | `e2e/app.spec.ts` notice + request-count tests |
+| FR-8 | `e2e/app.spec.ts` notice + request-count, `e2e/open-all.spec.ts` blocked/allowed |
 | FR-9 | `e2e/app.spec.ts` dark mode |
 | FR-10 | `e2e/app.spec.ts`, `e2e/responsive.spec.ts`, `e2e/zoom.spec.ts` (200% text) |
 | FR-11 | `docker compose` restart test + `bin/db psql` |
 | FR-12 | `tests/*.test.ts` |
 | FR-13 | Code review against the rule |
-| FR-14 | `e2e/app.spec.ts` tap targets + modal focus, `e2e/a11y.spec.ts` |
+| FR-14 | `e2e/app.spec.ts`, `e2e/a11y.spec.ts`, `e2e/drag-a11y.spec.ts` |
 | FR-15 | `tests/api.test.ts` + `e2e/app.spec.ts` banner test |
 | FR-16 | `docker compose up` with `.env` |
 
@@ -379,19 +383,16 @@ observed. Reading the code is not verification.
 
 These are real, unfixed, and must not be presented as complete:
 
-1. Native mobile gestures are unverified. WebKit touch drag is covered by synthetic
-   `TouchEvent`s (`document.createTouch` / `createTouchList`), which exercises the
-   dnd-kit path but not native iOS scroll arbitration, `touchcancel`, or callouts.
-   A real device is still required for those.
-2. Multi-tab "open all" depends on browser popup policy. The app is verified to
-   request every URL, but the browser may still open only one.
-3. Firefox cannot run locally. Playwright's Firefox 157 build exits at startup with
-   "Could not find profile folder" on macOS 27.0.1, even with an explicit profile
-   directory. The project is therefore opt-in via `PW_INCLUDE_FIREFOX=1` and runs in
-   CI on Linux, where it passes (run 39844157166, 2026-10-23). Local Firefox coverage
-   remains unavailable until a compatible build exists.
-4. No real-device testing (iOS Safari, Android Chrome) and no screen-reader audit
-   beyond the automated axe checks.
+1. Native mobile gestures remain unverified. WebKit touch drag is covered by
+   synthetic `TouchEvent`s, and the 200ms/5px activation constraint is exercised by
+   tests, but native iOS scroll arbitration, `touchcancel`, and callouts need a real
+   device.
+2. No real-device testing (iOS Safari, Android Chrome) and no screen-reader audit
+   beyond the automated axe checks and the live-region assertions.
+
+Resolved since the previous revision: tile clipping at 200% text (tiles now grow),
+Firefox local startup (the project is skipped locally on macOS and runs in CI), and
+silent popup blocking (the app detects it and offers a link list).
 
 ## 13. Commands
 
