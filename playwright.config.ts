@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 3100;
+const PORT = Number(process.env.PW_PORT ?? 3100);
 const external = process.env.E2E_BASE_URL;
 
 export default defineConfig({
