@@ -61,13 +61,13 @@ test('renders a grid with square tiles and the add tile last', async ({ page }) 
   await expect(page.locator('.grid').first().locator('> .tile').last()).toHaveClass(/tile--add/);
 });
 
-test('uses two columns on small screens and more on desktop', async ({ page }, testInfo) => {
+test('uses two columns on small screens and more on desktop', async ({ page }) => {
   await page.goto('/');
   await addBookmark(page, unique('Grid'), 'example.com');
   await addBookmark(page, unique('Grid'), 'example.org');
 
   const columns = await maxTilesPerRow(page);
-  const wide = testInfo.project.name === 'desktop';
+  const wide = (page.viewportSize()?.width ?? 0) >= 900;
 
   if (wide) expect(columns).toBeGreaterThanOrEqual(4);
   else expect(columns).toBe(2);
@@ -188,8 +188,8 @@ test('recovers when a broken icon is replaced with a working one', async ({ page
   await expect(tile.locator('img')).toHaveCount(1, { timeout: 10_000 });
 });
 
-test('drags a bookmark between sections with a mouse', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'mouse drag is desktop-only');
+test('drags a bookmark between sections with a mouse', async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) < 900, 'mouse drag needs a desktop-width viewport');
 
   const sourceName = unique('From');
   const targetName = unique('To');
