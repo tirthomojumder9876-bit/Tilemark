@@ -7,3 +7,8 @@ node_modules/
 dist/
 .npm-cache/
 *.log
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/

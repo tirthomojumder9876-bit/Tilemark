@@ -24,6 +24,7 @@ npm install
 | Build | `npm run build` |
 | Test (all) | `npm test` |
 | Test (single file) | `npx vitest run tests/order.test.ts` |
+| E2E (all browsers) | `npm run test:e2e` |
 | Typecheck | `npm run typecheck` |
 | Lint | none configured |
 | Format | none configured |

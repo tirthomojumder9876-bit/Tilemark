@@ -34,6 +34,11 @@ Run both in separate terminals. Other scripts:
 | `npm run typecheck` | TypeScript, no emit |
 | `npm run build` | Production build into `dist/` |
 | `npm start` | Serve `dist/` and the API together on :3001 |
+| `npm run test:e2e` | Playwright across Chromium, WebKit, and desktop |
+
+The first e2e run needs browsers once: `npx playwright install chromium webkit`.
+Set `E2E_BASE_URL=http://127.0.0.1:3001` to run the suite against the containerized
+app instead of a local server.
 
 Without `DATABASE_URL` the server keeps data in memory, so it resets on restart.
 The compose setup below sets `DATABASE_URL` for you.
