@@ -14,14 +14,27 @@ Turn the working tree into a single clean commit, leaving nothing behind.
    - Detached HEAD → stop and report.
    - Clean tree with no untracked files → report "nothing to commit" and stop.
 
-2. **Quick safety check.** Look before staging:
-   - **Secrets:** `.env` / `.env.*`, `*.pem`, `*.key`, `id_rsa*`, `*.p12`, `credentials*`, `secrets*`, hardcoded tokens or passwords in file contents.
-   - **Large files:** anything over ~5 MB (binaries, datasets, media, archives).
-   - **Junk:** `node_modules/`, `dist/`, `build/`, `.venv/`, `__pycache__/`, `*.log`, `.DS_Store`.
-   - Junk already present → add it to `.gitignore` and `git rm --cached` anything tracked, rather than committing it.
-   - A real secret or an oversized file → stop and ask. Never commit it.
+2. **Run the safety scan.** From the repo root, run the script next to this file,
+   resolving its path from this skill's base directory:
 
-   This is a fast scan, not an audit. Default to committing **all** working files, not just the ones you edited.
+   ```bash
+   bash <skill-base-dir>/check-safety.sh
+   ```
+
+   It scans exactly the paths that would be committed and prints `BLOCK`/`JUNK`
+   lines. Follow its verdict, do not re-judge it:
+
+   - **Exit 0** → safe. Continue to step 3.
+   - **Exit 1** → stop. Report every printed line to the user and commit nothing.
+     Remove or unstage `BLOCK` paths; move `JUNK` paths to `.gitignore`
+     (`git rm --cached` anything already tracked).
+   - **Exit 2** → environment problem (not a repo, git missing). Report and stop.
+
+   Raise the 5 MiB threshold with `MAX_BYTES=<bytes>` only when the user
+   explicitly approves committing that specific large file.
+
+   The scan is a guardrail, not a guarantee. Default to committing **all**
+   working files, not just the ones you edited.
 
 3. **Stage everything.** `git add -A`.
 
