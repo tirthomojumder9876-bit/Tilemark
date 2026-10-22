@@ -65,8 +65,28 @@ TODO: Describe the top-level directories and what belongs in each.
 ## Git
 
 - **Branch naming:** TODO
-- **Commit messages:** TODO (e.g. Conventional Commits: `feat:`, `fix:`, `docs:`).
-- **Before committing:** tests pass, lint clean, no stray debug output.
+- **Commit messages:** Use the `commit` skill (`.dsh/skills/commit`).
+- **Before committing:** run `bash .dsh/skills/commit/check-safety.sh --apply-ignore`.
+
+### Git safety
+
+`.githooks/` is enabled through `core.hooksPath` and refuses history rewriting and
+force pushes:
+
+- `git rebase` — refused by `pre-rebase`
+- `git commit --amend` — refused (non-fast-forward ref update)
+- `git reset --hard <older>`, `git reset --soft` — refused
+- `git branch -D` — refused (ref deletion)
+- `git push --force`, `git push origin --delete` — refused by `pre-push`
+
+Never run `reset --hard`, `clean -fdx`, `checkout -- .`, `restore`, `stash drop`, or
+`push --force`. If a task appears to need one, stop and ask.
+
+Caveat: `git reset --hard` rewrites the working tree before it touches the ref, so
+the hook aborts the *history* change but tracked files may already be reverted.
+Recover with `git checkout -- .` while HEAD is still intact. Hooks are also
+bypassable (`git -c core.hooksPath=reset`, `--no-verify`), so treat them as a
+guardrail, not a sandbox.
 
 ## Gotchas
 

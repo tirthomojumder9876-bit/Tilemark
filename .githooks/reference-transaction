@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# Blocks destructive branch ref movements.
+#
+# Fires on every ref update. Allowed: fast-forward commits and new branches.
+# Blocked: ref deletion and any non-fast-forward rewrite, which is what
+# `git reset --hard <older>`, `git reset --soft`, `git commit --amend`,
+# `git rebase`, and forced updates all do.
+
+state=$1
+[ "$state" = "prepared" ] || exit 0
+
+zero=0000000000000000000000000000000000000000
+status=0
+
+while read -r old new ref; do
+  case "$ref" in
+    refs/heads/*) ;;
+    *) continue ;;
+  esac
+
+  if [ "$new" = "$zero" ]; then
+    echo "git-guard: refusing to delete $ref" >&2
+    status=1
+    continue
+  fi
+
+  if [ "$old" != "$zero" ] && ! git merge-base --is-ancestor "$old" "$new" 2>/dev/null; then
+    echo "git-guard: refusing non-fast-forward update of $ref" >&2
+    echo "  This would discard commits (reset, amend, rebase, or a forced update)." >&2
+    status=1
+  fi
+done
+
+if [ "$status" -ne 0 ]; then
+  echo "Blocked by .githooks. Disable with: git config --unset core.hooksPath" >&2
+fi
+
+exit $status

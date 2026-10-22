@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Blocks force pushes and remote ref deletions.
+#
+# stdin lines: <local ref> <local sha> <remote ref> <remote sha>
+
+zero=0000000000000000000000000000000000000000
+status=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Deleting a remote ref.
+  if [ "$local_sha" = "$zero" ]; then
+    echo "git-guard: refusing to delete remote ref $remote_ref" >&2
+    status=1
+    continue
+  fi
+
+  # New branch: nothing to overwrite.
+  [ "$remote_sha" = "$zero" ] && continue
+
+  # Non-fast-forward push.
+  if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+    echo "git-guard: refusing force push to $remote_ref" >&2
+    status=1
+  fi
+done
+
+if [ "$status" -ne 0 ]; then
+  echo "Blocked by .githooks. Disable with: git config --unset core.hooksPath" >&2
+fi
+
+exit $status
