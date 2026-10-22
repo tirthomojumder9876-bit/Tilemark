@@ -8,8 +8,19 @@ dark mode plz
 
 Database: postgres container. access through docker psql.
 
-subagents ->
-mobile verifier, use  chromium or whatever to actually confirm visuals, as well as UX, etc.
-verifier-> checks each capability however seems fit.
+## Subagents
+
+### verifier
+
+Checks every capability against this spec, however it sees fit. Ticks the
+verification checkbox only when the behavior is actually observed. Reports each
+failure with the smallest step that reproduces it.
+
+### mobile verifier
+
+Uses Chromium (Playwright) to confirm what a user would see, not what the code
+claims. At 390x844 and 360x800: two per row, tap targets, spacing, dark mode.
+Walks the UX end to end — add, edit, delete, drag between sections, open all —
+and reports defects with screenshots.
 
 # spec
