@@ -41,7 +41,7 @@ server/              Express API
   pg-repo.ts         Postgres storage
 tests/               Vitest
 .githooks/           git guards
-bin/db               the only database entry point
+bin/db               runs commands inside the database container
 vault/               notes and spec
 ```
 
@@ -94,11 +94,13 @@ guardrail, not a sandbox.
 
 ## Database
 
-- The database is reachable only through `bin/db`, which runs commands inside the
-  container via `docker compose exec`. Use `bin/db psql [args]`.
-- Never add a `ports:` mapping to `compose.yaml`, and never install or invoke a host
-  `psql` client — both remove the restriction.
-- If Docker is missing or not running, report it. Do not fall back to a host install.
+- Postgres runs in Docker and is published on `127.0.0.1:5436` (loopback only).
+  Host tools connect there; the app container uses `db:5432` internally.
+- Keep the binding on `127.0.0.1`. Changing it to `0.0.0.0` exposes the database
+  to the local network.
+- `bin/db` remains the way to run commands *inside* the container (`bin/db psql`).
+- If Docker is missing or not running, report it. Do not fall back to an
+  unrelated host database.
 
 ## Gotchas
 

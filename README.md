@@ -40,25 +40,32 @@ The compose setup below sets `DATABASE_URL` for you.
 
 ## Database
 
-Postgres and the app both run in Docker, and the database has **no published port**.
-There is no host `psql` to install or use, because there is no host connection to
-make. Everything goes through the container:
+Postgres runs in Docker and is published on **127.0.0.1:5436** — loopback only, so
+it is reachable from this machine but not from the network. The app container talks
+to it internally as `db:5432`; host tools use the published port:
 
 ```bash
-cp .env.example .env     # then set a real POSTGRES_PASSWORD
-docker compose up --build  # app on :3001, Postgres internal to the network
-bin/db psql                # open psql inside the container
+cp .env.example .env       # then set a real POSTGRES_PASSWORD
+docker compose up --build  # app on :3001, Postgres on 127.0.0.1:5436
 ```
 
-`bin/db psql` passes arguments through, so `bin/db psql -c '\dt'` works too. Other
-commands: `bin/db up`, `bin/db down`, `bin/db logs`, `bin/db exec <cmd>`.
+Connecting from the host:
 
-Because the database publishes no port, a server started with `npm run server` on
-the host cannot reach it — that mode uses in-memory storage. Use compose when you
-want real persistence.
+```bash
+psql "postgres://app:change-me@127.0.0.1:5436/app"
+```
 
-Never add a `ports:` mapping to the `db` service, and never install a host `psql`
-client. Either one silently removes the restriction.
+To run psql inside the container instead — no host client needed — use `bin/db`:
+
+```bash
+bin/db psql                # open psql inside the container
+bin/db psql -c '\dt'       # passes arguments through
+```
+
+Other commands: `bin/db up`, `bin/db down`, `bin/db logs`, `bin/db exec <cmd>`.
+
+The port is set by `DB_PORT` in `.env` (default 5436). Keep the binding on
+`127.0.0.1`; changing it to `0.0.0.0` exposes the database to your network.
 
 ## Working here
 
