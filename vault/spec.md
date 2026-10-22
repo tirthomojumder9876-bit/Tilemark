@@ -6,7 +6,8 @@ try to keep visual components as dumb as possible.
 spec will have two checkboxes per thing, one for initial implementation , one for separate verification.
 dark mode plz
 
-Database: postgres container. access through docker psql.
+Database: postgres container, published on 127.0.0.1:5436 for host tools; psql
+can also be run inside the container.
 
 ## Subagents
 
