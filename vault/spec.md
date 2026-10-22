@@ -35,7 +35,7 @@ edited, deleted, and dragged between sections. Sections can be opened all at onc
 | Item | Value |
 | --- | --- |
 | User | One person, on their own machine |
-| Browsers | Chrome and Safari verified via Playwright; Firefox blocked here (see 12.4) |
+| Browsers | Chrome and Safari verified via Playwright; Firefox blocked here (see 12.3) |
 | Node | >= 22.6 (native TypeScript execution) |
 | Database | Postgres 17 in Docker, published on `127.0.0.1:5436` |
 | Fallback storage | In-memory when `DATABASE_URL` is unset |
@@ -349,7 +349,7 @@ Rules for implementers:
 | FR-7 | `e2e/app.spec.ts` drag tests (mouse + touch), `e2e/touch-webkit.spec.ts` |
 | FR-8 | `e2e/app.spec.ts` notice + request-count tests |
 | FR-9 | `e2e/app.spec.ts` dark mode |
-| FR-10 | `e2e/app.spec.ts` + `e2e/responsive.spec.ts` (boundaries, landscape, 200% text) |
+| FR-10 | `e2e/app.spec.ts`, `e2e/responsive.spec.ts`, `e2e/zoom.spec.ts` (200% text) |
 | FR-11 | `docker compose` restart test + `bin/db psql` |
 | FR-12 | `tests/*.test.ts` |
 | FR-13 | Code review against the rule |
@@ -385,15 +385,11 @@ These are real, unfixed, and must not be presented as complete:
    A real device is still required for those.
 2. Multi-tab "open all" depends on browser popup policy. The app is verified to
    request every URL, but the browser may still open only one.
-3. At 200% text scaling, tile contents clip: long titles and descriptions truncate
-   and the edit/delete controls overlay the icon. There is no overflow and controls
-   stay 40px, so no assertion fails — but this needs a design decision (scale the
-   content, relax the square aspect, or hide text at large sizes).
-4. Firefox cannot run in this environment. Playwright's Firefox 157 build exits at
+3. Firefox cannot run on this machine. Playwright's Firefox 157 build exits at
    startup with "Could not find profile folder" on macOS 27.0.1, even with an
-   explicit profile directory, so no Firefox project is configured. Revisit when a
-   compatible Playwright/Firefox build exists.
-5. No real-device testing (iOS Safari, Android Chrome) and no screen-reader audit
+   explicit profile directory. The project is behind `PW_INCLUDE_FIREFOX=1` and is
+   exercised by CI on Linux; it has not yet run there, so treat it as unproven.
+4. No real-device testing (iOS Safari, Android Chrome) and no screen-reader audit
    beyond the automated axe checks.
 
 ## 13. Commands

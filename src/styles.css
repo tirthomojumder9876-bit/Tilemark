@@ -206,9 +206,12 @@ button.danger {
 }
 
 .grid {
+  --gap: 0.75rem;
   display: grid;
   grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--gap);
+  /* Lets tiles size against the grid width with container units. */
+  container-type: inline-size;
   padding: 0.25rem;
   border-radius: var(--radius);
   outline: 2px dashed transparent;
@@ -221,7 +224,8 @@ button.danger {
 
 .tile {
   position: relative;
-  aspect-ratio: 1;
+  /* Square by default; grows taller when its content needs the room. */
+  min-height: calc((100cqw - (var(--cols, 2) - 1) * var(--gap, 0.75rem)) / var(--cols, 2));
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -427,6 +431,10 @@ button.danger {
 @media (min-width: 640px) {
   .app {
     padding: 1.5rem 1.5rem 4rem;
+  }
+
+  .grid {
+    --gap: 1rem;
   }
 
   .app__header h1 {
