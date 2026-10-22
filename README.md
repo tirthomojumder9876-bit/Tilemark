@@ -18,6 +18,27 @@ setting that activates them is not.
 That is the whole setup. Nothing else to install or build yet — the database below
 needs Docker, and that is all.
 
+## Development
+
+```bash
+npm install
+npm run server   # API on :3001 (in-memory storage unless DATABASE_URL is set)
+npm run dev      # Vite on :5173, proxies /api to the server
+```
+
+Run both in separate terminals. Other scripts:
+
+| Script | Purpose |
+| --- | --- |
+| `npm test` | Vitest unit tests |
+| `npm run typecheck` | TypeScript, no emit |
+| `npm run build` | Production build into `dist/` |
+| `npm start` | Serve `dist/` and the API together on :3001 |
+
+Without `DATABASE_URL` the server keeps data in memory, so it resets on restart.
+Set `DATABASE_URL=postgres://app:password@db:5432/app` when running inside compose
+to use Postgres.
+
 ## Database
 
 Postgres runs in Docker with **no published port**. There is no host `psql` to

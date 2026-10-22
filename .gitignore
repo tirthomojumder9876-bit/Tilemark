@@ -1,3 +1,9 @@
 # Local, secret, and generated files
 .env
 .vscode/
+
+# Dependencies and build output
+node_modules/
+dist/
+.npm-cache/
+*.log

@@ -2,55 +2,59 @@
 
 Guidance for AI coding agents working in this repository.
 
-> **Status:** This is a starter template. The project hasn't been initialized yet, so
-> sections marked `TODO` contain placeholders. Replace them with facts as the repo takes shape.
-
 ## Project Overview
 
-TODO: One or two sentences on what this project does and who uses it.
+A mobile-first single-page app for a grid of favorite websites. Bookmarks live in
+sections, open in a new tab, and can be dragged between sections.
 
 ## Setup
 
-TODO: How to get a working local environment.
-
 ```bash
-# install dependencies
-# configure environment (.env, secrets, local services)
-# initialize database / fixtures
+git config core.hooksPath .githooks   # once, after cloning
+npm install
 ```
 
 ## Common Commands
 
 | Task | Command |
 | --- | --- |
-| Install | `TODO` |
-| Dev server | `TODO` |
-| Build | `TODO` |
-| Test (all) | `TODO` |
-| Test (single file) | `TODO` |
-| Lint | `TODO` |
-| Format | `TODO` |
-| Typecheck | `TODO` |
+| Install dependencies | `npm install` |
+| API server (:3001) | `npm run server` |
+| SPA dev server (:5173) | `npm run dev` |
+| Build | `npm run build` |
+| Test (all) | `npm test` |
+| Test (single file) | `npx vitest run tests/order.test.ts` |
+| Typecheck | `npm run typecheck` |
+| Lint | none configured |
+| Format | none configured |
 
 ## Repository Layout
 
-TODO: Describe the top-level directories and what belongs in each.
-
 ```
-.
-├── TODO/
-└── TODO/
+src/                 SPA
+  logic/             pure functions, unit tested
+  components/        presentational React components
+  App.tsx            state, data loading, drag and drop wiring
+server/              Express API
+  repo.ts            storage interface
+  memory-repo.ts     in-memory storage (tests, dev without Docker)
+  pg-repo.ts         Postgres storage
+tests/               Vitest
+.githooks/           git guards
+bin/db               the only database entry point
+vault/               notes and spec
 ```
 
 ## Conventions
 
-- **Language/style:** TODO (e.g. TypeScript strict mode, PEP 8, gofmt).
-- **Formatting:** Run the formatter before committing; do not hand-format.
-- **Imports:** TODO (ordering, absolute vs relative paths).
-- **Naming:** TODO (files, components, tests).
-- **Tests:** Add or update tests for behavior changes. Bug fixes should include a
-  regression test when practical.
-- **Error handling:** Prefer explicit handling over silent fallbacks; never swallow errors.
+- **Language/style:** TypeScript strict mode, ES modules, explicit `.ts` extensions on
+  imports used by the server (Node requires them; Vite tolerates them).
+- **Logic vs components:** pure rules belong in `src/logic/` with tests. Components
+  receive props and render; they do not fetch or validate.
+- **Testing:** every pure function gets unit tests. `npm test` and `npm run typecheck`
+  must pass before a commit.
+- **Error handling:** the API returns `{ error }` or `{ errors: { field } }`; the client
+  surfaces the message in the banner.
 
 ## Working Guidelines for Agents
 
