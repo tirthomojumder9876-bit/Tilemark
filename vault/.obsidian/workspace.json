@@ -55,7 +55,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "tag:#spec",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -79,7 +79,8 @@
               "title": "Bookmarks"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -188,6 +189,6 @@
       "bases:Create new base": false
     }
   },
-  "active": "07dfa38a21cdaa78",
+  "active": "18b347b8cc6e0bd1",
   "lastOpenFiles": []
 }
