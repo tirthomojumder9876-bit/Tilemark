@@ -2,6 +2,9 @@
 
 A project to add favorite websites and launch them in a new tab.
 
+The full requirements, data model, API contract, and verification matrix live in
+[vault/spec.md](vault/spec.md).
+
 ## Setup
 
 Clone the repository, then enable its hooks once:
